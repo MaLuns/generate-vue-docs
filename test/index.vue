@@ -18,16 +18,15 @@
 </template>
 
 <script>
-// This is a description of the component
+// 这里是组件的描述
 export default {
     name: 'MyComponent',
     props: {
-        // The name of the form, up to 8 characters
+        // name属性,支持 `.sync`
         name: {
             type: [String, Number],
             required: true,
-            validator (val) {
-                return ['test', 0].indexOf(val) > -1
+            validator () {
             }
         },
         // v-model
@@ -35,17 +34,18 @@ export default {
     },
     methods: {
         /**
-         * Used to manually clear the form
-         * @param {Bool} type 
-         * @returns return true
+         * 这是一个`async`方法
+         * @param {Bool} type 清除类型
+         * @returns 返回值描述
          */
-        clear (type) {
-            // Fire when the form is cleared
+        async clear (type) {
+            // 描述onclear事件
             this.$emit('onclear', type)
             return true
         },
         _private (val) {
             this.$emit('update', val)
+            this.$emit('update:name', val)
         }
     }
 }

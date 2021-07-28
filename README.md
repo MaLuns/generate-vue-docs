@@ -19,7 +19,7 @@ parseDocs(vueStr, {
 ```
 
 ### 默认配置
-``` json
+``` js
 {
     md: false,
     mdOptions: {
@@ -31,3 +31,35 @@ parseDocs(vueStr, {
     }
 }
 ```
+
+### 生成vue组件 md 示例
+
+## MyComponent
+这里是组件的描述
+
+
+### Attributes
+| 参数          | 类型           | 说明                  | 默认值 |
+| ------------- | -------------- | --------------------- | ------ |
+| name `sync`   | String、Number | name属性,支持 `.sync` | ——     |
+| value `model` | String、Number | v-model               | ——     |
+
+
+### Slots
+| name   | 说明         |
+| ------ | ------------ |
+| header | header slot  |
+| -      | default slot |
+| footer | footer slot  |
+
+
+### Events
+| 事件名称 | 说明            |
+| -------- | --------------- |
+| onclear  | 描述onclear事件 |
+
+
+### Methods
+| 方法名        | 说明              | 参数                | 返回值     |
+| ------------- | ----------------- | ------------------- | ---------- |
+| clear `async` | 这是一个`async`方法 | type:Bool(清除类型) | 返回值描述 |

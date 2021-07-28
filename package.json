@@ -1,0 +1,23 @@
+{
+  "name": "generate-vue-docs",
+  "version": "1.0.1",
+  "description": "vue组件文档生成",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node test"
+  },
+  "keywords": [
+    "template",
+    "docs",
+    "vue docs"
+  ],
+  "author": "ml",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/generator": "^7.14.8",
+    "@babel/parser": "^7.14.8",
+    "@babel/traverse": "^7.14.8",
+    "@babel/types": "^7.14.8",
+    "vue-template-compiler": "^2.6.14"
+  }
+}

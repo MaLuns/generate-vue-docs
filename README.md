@@ -2,6 +2,14 @@
 为vue单文件组件生成文档说明。
 
 ### 使用
+``` 
+npm i generate-vue-docs
+
+or 
+
+yarn add generate-vue-docs
+```
+
 ``` js
 const { parseDocs } = require('generate-vue-docs')
 

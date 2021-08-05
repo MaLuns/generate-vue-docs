@@ -191,6 +191,13 @@ const traverserTemplateAst = (ast, visitor = {}) => {
     traverseNode(ast, null);
 }
 
+const extract = {
+    props: extractProps,
+    methods: extractMethods,
+    name: (item) => item.value.value,
+    model: extractModel
+}
+
 // 转换文档
 const parseDocs = (vueStr, config = {}) => {
     config = Object.assign({}, baseConfig, config)
@@ -203,6 +210,8 @@ const parseDocs = (vueStr, config = {}) => {
         events: undefined,
         methods: undefined
     }
+
+
 
     let vue = compiler.parseComponent(vueStr)
     let jsAst = parse.parse(vue.script.content, {
@@ -235,22 +244,7 @@ const parseDocs = (vueStr, config = {}) => {
                 }).toString()
             }
             path.node.declaration.properties.forEach(item => {
-                switch (item.key.name) {
-                    case 'props':
-                        componentInfo.props = extractProps(item)
-                        break;
-                    case 'methods':
-                        componentInfo.methods = extractMethods(item)
-                        break
-                    case 'name':
-                        componentInfo.name = item.value.value
-                        break
-                    case 'model':
-                        componentInfo.model = extractModel(item)
-                        break
-                    default:
-                        break;
-                }
+                if (extract[item.key.name]) componentInfo[item.key.name] = extract[item.key.name](item)
             });
         },
     })

@@ -23,7 +23,7 @@ const extractProps = (node) => {
     let props = {}
 
     // 获取Props类型
-    function getPropType (node) {
+    function getPropType(node) {
         if (types.isIdentifier(node)) {
             return node.name
         } else if (types.isArrayExpression(node)) {
@@ -34,7 +34,7 @@ const extractProps = (node) => {
     }
 
     // 获取Props默认值
-    function getDefaultVal (node) {
+    function getDefaultVal(node) {
         if (types.isRegExpLiteral(node) || types.isBooleanLiteral(node) || types.isNumericLiteral(node) || types.isStringLiteral(node)) {
             return node.value
         } else if (types.isFunctionExpression(node) || types.isArrowFunctionExpression(node) || types.isObjectMethod(node)) {
@@ -176,13 +176,13 @@ const isModelAndSync = (comInfo) => {
 
 // 遍历模板抽象数
 const traverserTemplateAst = (ast, visitor = {}) => {
-    function traverseArray (array, parent) {
+    function traverseArray(array, parent) {
         array.forEach(child => {
             traverseNode(child, parent);
         });
     }
 
-    function traverseNode (node, parent) {
+    function traverseNode(node, parent) {
         visitor.enter && visitor.enter(node, parent);
         visitor[node.tag] && visitor[node.tag](node, parent);
         node.children && traverseArray(node.children, node);
@@ -211,70 +211,74 @@ const parseDocs = (vueStr, config = {}) => {
         methods: undefined
     }
 
-
-
     let vue = compiler.parseComponent(vueStr)
-    let jsAst = parse.parse(vue.script.content, {
-        allowImportExportEverywhere: true
-    })
+    if (vue.script) {
+        let jsAst = parse.parse(vue.script.content, {
+            allowImportExportEverywhere: true,
+            plugins: [
+                "jsx"
+            ]
+        })
 
-    // 遍历js抽象数
-    traverse.default(jsAst, {
-        MemberExpression (path) {
-            // 判断是不是event
-            if (path.node.property.name === '$emit') {
-                let event = extractEvents(path)
-                !componentInfo.events && (componentInfo.events = {});
-                if (componentInfo.events[event.name]) {
-                    componentInfo.events[event.name].desc = event.desc ? event.desc : componentInfo.events[event.name].desc
-                } else {
-                    componentInfo.events[event.name] = event
-                }
-            }
-        },
-        ExportDefaultDeclaration (path) {
-            // 组件描述
-            if (path.node.leadingComments) {
-                componentInfo.desc = path.node.leadingComments.map(item => {
-                    if (item.type === 'CommentLine') {
-                        return item.value.trim()
+        // 遍历js抽象数
+        traverse.default(jsAst, {
+            MemberExpression(path) {
+                // 判断是不是event
+                if (path.node.property.name === '$emit') {
+                    let event = extractEvents(path)
+                    !componentInfo.events && (componentInfo.events = {});
+                    if (componentInfo.events[event.name]) {
+                        componentInfo.events[event.name].desc = event.desc ? event.desc : componentInfo.events[event.name].desc
                     } else {
-                        return item.value.split('\n').map(item => item.replace(/[\s\*]/g, '')).filter(Boolean)
+                        componentInfo.events[event.name] = event
                     }
-                }).toString()
-            }
-            path.node.declaration.properties.forEach(item => {
-                if (extract[item.key.name]) componentInfo[item.key.name] = extract[item.key.name](item)
-            });
-        },
-    })
+                }
+            },
+            ExportDefaultDeclaration(path) {
+                // 组件描述
+                if (path.node.leadingComments) {
+                    componentInfo.desc = path.node.leadingComments.map(item => {
+                        if (item.type === 'CommentLine') {
+                            return item.value.trim()
+                        } else {
+                            return item.value.split('\n').map(item => item.replace(/[\s\*]/g, '')).filter(Boolean)
+                        }
+                    }).toString()
+                }
+                path.node.declaration.properties.forEach(item => {
+                    if (extract[item.key.name]) componentInfo[item.key.name] = extract[item.key.name](item)
+                });
+            },
+        })
 
-    isModelAndSync(componentInfo)
+        isModelAndSync(componentInfo)
+    }
+    if (vue.template) {
+        let template = compiler.compile(vue.template.content, {
+            preserveWhitespace: false,
+            comments: true
+        })
 
-    let template = compiler.compile(vue.template.content, {
-        preserveWhitespace: false,
-        comments: true
-    })
-
-    // 遍历模板抽象数
-    traverserTemplateAst(template.ast, {
-        slot (node, parent) {
-            !componentInfo.slots && (componentInfo.slots = {})
-            let index = parent.children.findIndex(item => item === node)
-            let desc = '无描述', name = '-';
-            if (index > 0) {
-                let tag = parent.children[index - 1]
-                if (tag.isComment) {
-                    desc = tag.text.trim()
+        // 遍历模板抽象数
+        traverserTemplateAst(template.ast, {
+            slot(node, parent) {
+                !componentInfo.slots && (componentInfo.slots = {})
+                let index = parent.children.findIndex(item => item === node)
+                let desc = '无描述', name = '-';
+                if (index > 0) {
+                    let tag = parent.children[index - 1]
+                    if (tag.isComment) {
+                        desc = tag.text.trim()
+                    }
+                }
+                if (node.slotName) name = node.attrsMap.name
+                componentInfo.slots[name] = {
+                    name,
+                    desc
                 }
             }
-            if (node.slotName) name = node.attrsMap.name
-            componentInfo.slots[name] = {
-                name,
-                desc
-            }
-        }
-    })
+        })
+    }
 
     if (config.md) {
         let option = { ...mdOptions }

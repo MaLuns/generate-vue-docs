@@ -1,6 +1,6 @@
 {
   "name": "generate-vue-docs",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "vue组件文档生成",
   "main": "src/index.js",
   "repository": {
